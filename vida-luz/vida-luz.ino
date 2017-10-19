@@ -1,56 +1,89 @@
 /*
   Projeto Vida Luz - Primeiros Passos
-  Hardware Utilizado: Nodemcu v1.0, LDR
-  Autor: Yhan Christian Souza Silva - versão 0.1
+  Hardware Utilizado: Nodemcu v1.0, LDR, Sensor PIR
+  Autor: Yhan Christian Souza Silva - versão 0.2
 */
 
 // -- Definições de Hardware --
 
 #define ldrPin 0
 #define ledPin 5
+#define pirPin 4
 
-// -- Variáveis -- 
+// -- Variáveis --
 
-unsigned long previousMillis  = 0;
-const long interval = 1000;
+unsigned long previousMillis01  = 0;
+unsigned long previousMillis02  = 0;
+const long interval01 = 1000;
+const long interval02 = 20000;
+const int calibrationTime = 30;
 
 // -- Protótipo de funções auxiliares --
 
-int readSensor();
-void turnOn();
+int readLdr();
+boolean readPir();
+boolean turnOn();
+void turnOff();
 
-// -- Setup -- 
+// -- Setup --
 
 void setup() {
   Serial.begin(9600);
-  pinMode(ledPin,OUTPUT);
+  pinMode(ledPin, OUTPUT);
+  pinMode(pirPin, INPUT);
   Serial.println("Calibrando - Aguarde");
-  Serial.println("......................................");
-  delay(2000); 
+  for (unsigned int i = 0; i < calibrationTime; i++) {
+    Serial.print(".");
+    delay(1000);
+  }
 }
 
 // -- Loop --
 void loop() {
-  if(millis() - previousMillis >= interval) {
-    readSensor();
-    TurnOn();
-    previousMillis = millis(); 
-  } 
+  if (millis() - previousMillis01 >= interval01) {
+    readLdr();
+    readPir();
+    turnOn();
+    previousMillis01 = millis();
+  }
+  if (millis() - previousMillis02 >= interval02) {
+    turnOff();
+    previousMillis02 = millis();
+  }
 }
 
 // -- Funções Auxiliares --
 
-int readSensor() {
-    unsigned int sensorValue = 0;
-    sensorValue = analogRead(ldrPin);
-    Serial.println(sensorValue);
-    return sensorValue;
+int readLdr() {
+  unsigned int ldrValue = 0;
+  ldrValue = analogRead(ldrPin);
+  Serial.println(ldrValue);
+  return ldrValue;
 }
 
-void TurnOn() {
-       int lowLight = readSensor();
-       if(lowLight < 150) digitalWrite(ledPin, HIGH);
-       else digitalWrite(ledPin, LOW); 
+boolean readPir() {
+  boolean pirState = false;
+  pirState = digitalRead(pirPin);
+  Serial.println(pirState);
+  return pirState;
+}
+
+boolean turnOn() {
+  int lowLight = readLdr();
+  boolean ledState;
+  boolean detectMotion = readPir();
+  if (lowLight < 300 && detectMotion)
+  {
+    digitalWrite(ledPin, HIGH);
+    ledState = true;
+    previousMillis02 = millis();
+  }
+  else ledState = false;
+  return ledState;
+}
+
+void turnOff() {
+  if (!turnOn()) digitalWrite(ledPin, LOW);
 }
 
 
