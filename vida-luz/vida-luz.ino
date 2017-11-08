@@ -7,7 +7,7 @@
 // -- Definições de Hardware --
 
 #define ldrPin 0
-#define ledPin 5
+#define output 5
 #define pirPin 4
 
 // -- Variáveis --
@@ -15,7 +15,7 @@
 unsigned long previousMillis01  = 0;
 unsigned long previousMillis02  = 0;
 const long interval01 = 1000;
-const long interval02 = 20000;
+const long interval02 = 30000;
 const int calibrationTime = 30;
 
 // -- Protótipo de funções auxiliares --
@@ -29,7 +29,7 @@ void turnOff();
 
 void setup() {
   Serial.begin(9600);
-  pinMode(ledPin, OUTPUT);
+  pinMode(output, OUTPUT);
   pinMode(pirPin, INPUT);
   Serial.println("Calibrando - Aguarde");
   for (unsigned int i = 0; i < calibrationTime; i++) {
@@ -70,20 +70,20 @@ boolean readPir() {
 
 boolean turnOn() {
   int lowLight = readLdr();
-  boolean ledState;
+  boolean outState;
   boolean detectMotion = readPir();
-  if (lowLight < 300 && detectMotion)
+  if (lowLight < 150 && detectMotion)
   {
-    digitalWrite(ledPin, HIGH);
-    ledState = true;
+    digitalWrite(output, LOW);
+    outState = true;
     previousMillis02 = millis();
   }
-  else ledState = false;
-  return ledState;
+  else outState = false;
+  return outState;
 }
 
 void turnOff() {
-  if (!turnOn()) digitalWrite(ledPin, LOW);
+  if (!turnOn()) digitalWrite(output, HIGH);
 }
 
 
